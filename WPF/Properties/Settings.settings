@@ -1,0 +1,72 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="KGuiX.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="WindowPosLeft" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">50</Value>
+    </Setting>
+    <Setting Name="WindowPosTop" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">50</Value>
+    </Setting>
+    <Setting Name="HistoryLog" Type="System.String" Scope="User">
+      <Value Profile="(Default)">null</Value>
+    </Setting>
+    <Setting Name="RamtestCpuCacheMode" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">2</Value>
+    </Setting>
+    <Setting Name="RamtestRngMode" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="RamtestStopOnError" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="RamtestStopOnTaskScope" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="RamtestSizeIsAuto" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="RamtestTaskScope" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">5000</Value>
+    </Setting>
+    <Setting Name="RamtestMegabytes" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">1000</Value>
+    </Setting>
+    <Setting Name="RamtestSizePercent" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">95</Value>
+    </Setting>
+    <Setting Name="RamtestThreads" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">64</Value>
+    </Setting>
+    <Setting Name="RamtestBeepOnError" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="RamtestErrorLimit" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="RamtestStressFpu" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="UiPollingRate" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">150</Value>
+    </Setting>
+    <Setting Name="UiMaxSpeedDelay" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">"15"</Value>
+    </Setting>
+    <Setting Name="UiHistoryEnabled" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">"True"</Value>
+    </Setting>
+    <Setting Name="UiTopmostEnabled" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">"False"</Value>
+    </Setting>
+    <Setting Name="UiSaveWindowPos" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">"False"</Value>
+    </Setting>
+    <Setting Name="UiToolTipEnabled" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">"True"</Value>
+    </Setting>
+    <Setting Name="UiIsDarkTheme" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">"True"</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

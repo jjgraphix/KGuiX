@@ -1,0 +1,1075 @@
+﻿<Window x:Class="KGuiX.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:glob="clr-namespace:System.Globalization;assembly=System.Runtime"
+        xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+        xmlns:local="clr-namespace:KGuiX"
+        xmlns:behaviors="clr-namespace:KGuiX.Helpers.Behaviors"
+        x:Name="AppWindow"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="CanMinimize"
+        Height="452"
+        Width="244"
+        BorderThickness="1"
+        Topmost="{Binding UiTopmostEnabled}"
+        Background="{DynamicResource WindowBackground}">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="32" ResizeBorderThickness="0" GlassFrameThickness="0,0,0,0.1" />
+    </WindowChrome.WindowChrome>
+
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Closing">
+            <i:CallMethodAction MethodName="OnWindowClosing" TargetObject="{Binding}" />
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Activated">
+            <i:CallMethodAction MethodName="OnWindowActivated" TargetObject="{Binding}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+
+    <i:Interaction.Behaviors>
+        <behaviors:WindowPositionBehavior SaveWinPosition="{Binding UiSaveWindowPos}" />
+    </i:Interaction.Behaviors>
+
+    <Window.Style>
+    <!-- Window Title / Estimated Time Remaining -->
+        <Style x:Key="{x:Type Window}" TargetType="{x:Type Window}">
+            <Setter Property="Window.Title" Value="RAM Test (KGuiX)" />
+            <Setter Property="BorderBrush" Value="{DynamicResource WindowBorder}" />
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding RamtestIsRunning}" Value="True" />
+                        <Condition Binding="{Binding RamtestStopOnTaskScope}" Value="True" />
+                        <Condition Binding="{Binding RamtestSpeed, Converter={StaticResource IsGreaterThanConverter}, ConverterParameter=0}" Value="True" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Window.Title"
+                            Value="{Binding RamtestFinishedIn, StringFormat='Finished in {0:hh\\:mm\\:ss}',
+                                       ConverterCulture={x:Static local:ViewModels.BindableBase.CurrentCulture}}" />
+                </MultiDataTrigger>
+                <DataTrigger Binding="{Binding IsActive, RelativeSource={RelativeSource Self}}" Value="False">
+                    <Setter Property="Foreground" Value="{DynamicResource GrayTextBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Style>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="28" /> <!--  0:TitleBar  -->
+            <RowDefinition Height="*" />    <!--  1:Window  -->
+        </Grid.RowDefinitions>
+        <!-- Title bar background -->
+        <Border Grid.Row="0">
+            <Border.Style>
+                <Style TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource TitleBarBackground}"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding RamtestErrorCount, ConverterParameter=0,
+                                                  Converter={StaticResource IsGreaterThanConverter}}" Value="True">
+                            <Setter Property="Margin" Value="-1" />
+                            <Setter Property="Background" Value="{DynamicResource ValueErrorBrush}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+        </Border>
+        <!-- Title bar elements -->
+        <Grid Tag="titleBarGrid">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/> <!-- 0:Icon -->
+                <ColumnDefinition Width="*"/>    <!-- 1:Title -->
+                <ColumnDefinition Width="Auto"/> <!-- 2:Minimize -->
+                <ColumnDefinition Width="Auto"/> <!-- 3:Maximize -->
+            </Grid.ColumnDefinitions>
+            <Image Grid.Column="0" Margin="5,0,0,0"
+                Style="{StaticResource IsActiveWindowStyle}"
+                Height="16"
+                VerticalAlignment="Center"
+                SnapsToDevicePixels="True"
+                Source="kguix.ico">
+                <Image.Tag><sys:Double>0.80</sys:Double></Image.Tag><!-- Inactive window opacity-->
+            </Image>
+            <TextBlock x:Name="windowTitle" Grid.Column="1" Margin="5,0,0,0"
+                Style="{StaticResource IsActiveWindowStyle}"
+                VerticalAlignment="Center"
+                FontSize="11.5"
+                Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}">
+                <TextBlock.Tag><sys:Double>0.70</sys:Double></TextBlock.Tag><!-- Inactive window opacity-->
+            </TextBlock>
+            <Button Grid.Column="2"
+                    Click="MinimizeButton_Click"
+                    Style="{StaticResource TitleBarButtonStyle}"
+                    Background="{StaticResource TitleBarButtonBrush}"
+                    BorderBrush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+                    Margin="0,-1,0,0"
+                    FontSize="10"
+                    Content="&#xE921;">
+                <Button.Tag><sys:Double>0.0</sys:Double></Button.Tag><!-- Initial MouseOver opacity -->
+            </Button>
+            <Button Grid.Column="3"
+                    Click="CloseButton_Click"
+                    Style="{StaticResource TitleBarButtonStyle}"
+                    Background="{StaticResource TitleBarCloseBrush}"
+                    Margin="0,-1,-1,0"
+                    FontSize="14"
+                    Content="&#xE711;">
+                <Button.Tag><sys:Double>0.6</sys:Double></Button.Tag><!-- Initial MouseOver opacity -->
+            </Button>
+        </Grid>
+
+
+        <Grid Grid.Row="1" Margin="5" Focusable="False">
+
+            <!-- Theme Toggle Button -->
+            <ToggleButton Tag="ToggleTheme" Grid.ZIndex="100"
+                HorizontalAlignment="Right" VerticalAlignment="Top"
+                Width="19" Height="19"
+                Focusable="False"
+                Style="{StaticResource ThemeToggleButton}"
+                IsChecked="{Binding UiIsDarkTheme, Mode=TwoWay}"
+                Click="SwitchTheme_Click" />
+
+            <!-- Window content -->
+            <TabControl Tag="TabWindow"
+                Background="{DynamicResource ControlBackgroundBrush}"
+                BorderBrush="{DynamicResource ControlBorderBrush}"
+                Focusable="False"
+                SelectedIndex="0">
+                <TabControl.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="3"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SelectedIndex, RelativeSource={RelativeSource AncestorType={x:Type TabControl}}}" Value="0">
+                                <Setter Property="CornerRadius" Value="0,3,3,3"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TabControl.Resources>
+                <i:Interaction.Behaviors>
+                    <behaviors:ClearFocusOnTabChangeBehavior />
+                </i:Interaction.Behaviors>
+
+                <!-- +++++++++++++++++++ Testing Tab +++++++++++++++++++ -->
+                <TabItem Header="Testing">
+
+                    <DockPanel Margin="2,0,2,0">
+
+                        <!-- ++++++++++ System Group ++++++++++ -->
+                        <GroupBox Header="Memory" DockPanel.Dock="Top" Style="{StaticResource GroupBoxMemoryStyle}">
+
+                            <DockPanel Margin="5,4,5,3">
+
+                                <Grid DockPanel.Dock="Top" Margin="0,1,0,4">
+                                    <Grid.Style>
+                                        <Style TargetType="{x:Type Grid}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding RamtestIsRunning}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Grid.Style>
+                                    <!-- Memory Usage Bar Tool Tip -->
+                                    <FrameworkElement.ToolTip>
+                                        <ToolTip Visibility="Visible">
+                                            <StackPanel Margin="0,-1,0,0" Orientation="Vertical" HorizontalAlignment="Left">
+                                                <Grid Margin="0,0,0,1">
+                                                    <Rectangle Height="8" Width="8"
+                                                        VerticalAlignment="Center" HorizontalAlignment="Left"
+                                                        Fill="{DynamicResource WindowBackground}"
+                                                        Stroke="{DynamicResource ControlBorderBrush}" />
+                                                    <TextBlock Text="Physical Memory" FontSize="10" Padding="12,0,0,0" HorizontalAlignment="Left" />
+                                                </Grid>
+                                                <Grid Margin="0,0,0,1">
+                                                    <Rectangle Height="8" Width="8"
+                                                        VerticalAlignment="Center" HorizontalAlignment="Left"
+                                                        Fill="{DynamicResource ControlBorderBrush}" />
+                                                    <TextBlock Text="Available:" FontSize="10" Padding="12,0,0,0" HorizontalAlignment="Left" />
+                                                    <TextBlock FontSize="10" HorizontalAlignment="Right"
+                                                               Text="{Binding SystemMemoryFreePercent, Mode=OneWay, StringFormat={}{0}%,
+                                                                         ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}" />
+                                                </Grid>
+                                                <Grid>
+                                                    <Rectangle Height="8" Width="8"
+                                                        VerticalAlignment="Center" HorizontalAlignment="Left"
+                                                        Fill="{DynamicResource SecondaryTextBrush}" />
+                                                    <TextBlock Text="Test Size: " FontSize="10" Padding="12,0,0,0" HorizontalAlignment="Left" />
+                                                    <TextBlock FontSize="10" HorizontalAlignment="Right"
+                                                               Text="{Binding RamtestMemoryUsagePercent, Mode=OneWay, StringFormat={}{0}%,
+                                                                       ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}" />
+                                                </Grid>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </FrameworkElement.ToolTip>
+                                    <!-- Memory Usage Bar -->
+                                    <ProgressBar Height="10"
+                                                 Value="{Binding SystemMemoryFree}"
+                                                 Maximum="{Binding SystemMemoryTotal}"
+                                                 Foreground="{DynamicResource ControlBorderBrush}">
+                                    </ProgressBar>
+                                    <ProgressBar Height="10"
+                                                 Background="Transparent"
+                                                 Value="{Binding RamtestSize}"
+                                                 Maximum="{Binding SystemMemoryTotal}"
+                                                 BorderBrush="{DynamicResource ControlBorderBrush}">
+                                        <FrameworkElement.Style>
+                                            <Style TargetType="{x:Type ProgressBar}" BasedOn="{StaticResource {x:Type ProgressBar}}">
+                                                <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding RamtestSizeIsValid}" Value="False">
+                                                        <Setter Property="Foreground" Value="{DynamicResource ValueErrorBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </FrameworkElement.Style>
+                                    </ProgressBar>
+                                </Grid>
+                                <!-- Free Memory / Total Memory -->
+                                <Grid DockPanel.Dock="Top" Margin="0,0,0,3">
+                                    <TextBlock Grid.Column="1" Text="Free Memory:" HorizontalAlignment="Left" FontSize="11" />
+                                    <TextBlock Grid.Column="3" DockPanel.Dock="Right" HorizontalAlignment="Right" FontSize="11">
+                                        <Run Text="{Binding SystemMemoryFree, Mode=OneWay, StringFormat='{}{0:G}',
+                                                       ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}" />
+                                        <Run Text="/" />
+                                        <Run Text="{Binding SystemMemoryTotal, Mode=OneWay, StringFormat='{}{0:G} MB',
+                                                       ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}" />
+                                        <FrameworkElement.ToolTip>
+                                            <ToolTip Placement="Right" Visibility="Visible"
+                                                     ContentStringFormat='{}{0}%'
+                                                     Content="{Binding SystemMemoryFreePercent,
+                                                                  ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}" />
+                                        </FrameworkElement.ToolTip>
+                                    </TextBlock>
+                                </Grid>
+                                <!-- Test Size Per Thread -->
+                                <Grid DockPanel.Dock="Top" Margin="0">
+                                    <TextBlock Text="Test Usage:" HorizontalAlignment="Left" FontSize="11" />
+                                    <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}">
+                                        <Run Text="{Binding RamtestSizePerThread, Mode=OneWay, StringFormat='{}{0} MB',
+                                                       ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}" />
+                                        <Run Text="×" />
+                                        <Run Text="{Binding RamtestThreads, Mode=OneWay, StringFormat='{}{0:G}',
+                                                       ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}" />
+                                        <FrameworkElement.ToolTip>
+                                            <ToolTip Placement="Right" Visibility="Visible"
+                                                     ContentStringFormat='{}{0}%'
+                                                     Content="{Binding RamtestMemoryUsagePercent,
+                                                                  ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}" />
+                                        </FrameworkElement.ToolTip>
+                                    </TextBlock>
+                                </Grid>
+
+                            </DockPanel>
+
+                        </GroupBox>
+
+                        <!-- ++++++++++ Settings Group ++++++++++ -->
+                        <GroupBox Header="Settings" DockPanel.Dock="Top">
+
+                            <DockPanel Margin="5,4,5,5">
+
+                                <StackPanel DockPanel.Dock="Top" Orientation="Vertical"
+                                    IsEnabled="{Binding RamtestIsRunning, Converter={StaticResource InverseBooleanConverter}}">
+
+                                    <!-- Test Size -->
+                                    <Grid DockPanel.Dock="Top" Margin="0,0,0,3">
+                                        <TextBlock Text="Test Size in MB:" VerticalAlignment="Center">
+                                            <FrameworkElement.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock>
+                                                        Total memory tested across CPU threads.<LineBreak />
+                                                        • Test 95-98% free memory for best results.
+                                                    </TextBlock>
+                                                </ToolTip>
+                                            </FrameworkElement.ToolTip>
+                                        </TextBlock>
+                                        <TextBox Text="{Binding RamtestSize, Mode=TwoWay, TargetNullValue=''}" 
+                                            IsEnabled="{Binding RamtestSizeIsAuto, Converter={StaticResource InverseBooleanConverter}}">
+                                            <FrameworkElement.Style>
+                                                <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
+                                                    <Style.Triggers>
+                                                        <MultiDataTrigger>
+                                                            <MultiDataTrigger.Conditions>
+                                                                <Condition Binding="{Binding RamtestIsRunning}" Value="False" />
+                                                                <Condition Binding="{Binding RamtestSizeIsValid}" Value="False" />
+                                                            </MultiDataTrigger.Conditions>
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource ValueErrorBrush}" />
+                                                        </MultiDataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </FrameworkElement.Style>
+                                            <i:Interaction.Behaviors>
+                                                <behaviors:NumericTextBoxBehavior
+                                                    MaxValue="{Binding SystemMemoryTotal, Mode=OneWay}"
+                                                    MinValue="1" />
+                                            </i:Interaction.Behaviors>
+                                        </TextBox>
+                                    </Grid>
+
+                                    <!-- Cpu Threads -->
+                                    <Grid DockPanel.Dock="Top" Margin="0,0,0,3">
+                                        <TextBlock Text="CPU Threads:" VerticalAlignment="Center">
+                                            <FrameworkElement.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock>
+                                                        Number of processors used by the test. (Limit: 64)<LineBreak />
+                                                        • At least one thread per core for best results.
+                                                    </TextBlock>
+                                                </ToolTip>
+                                            </FrameworkElement.ToolTip>
+                                        </TextBlock>
+                                        <TextBox Text="{Binding RamtestThreads, Mode=TwoWay, TargetNullValue=''}">
+                                            <i:Interaction.Behaviors>
+                                                <behaviors:NumericTextBoxBehavior
+                                                    MaxValue="{Binding SystemCpuThreads, Mode=OneWay}"
+                                                    MinValue="1" />
+                                            </i:Interaction.Behaviors>
+                                        </TextBox>
+                                    </Grid>
+
+                                    <!-- * Auto Test Size * -->
+                                    <Grid DockPanel.Dock="Top" Margin="0,0,0,3">
+                                        <CheckBox Content="Auto Test Size:"
+                                            IsChecked="{Binding RamtestSizeIsAuto, Mode=TwoWay}">
+                                            <FrameworkElement.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock>
+                                                        Calculate test size as percentage of free memory.<LineBreak />
+                                                        • Test size is rounded evenly across CPU threads.
+                                                    </TextBlock>
+                                                </ToolTip>
+                                            </FrameworkElement.ToolTip>
+                                        </CheckBox>
+                                        <!-- Test Size Percentage -->
+                                        <TextBox Tag="%"
+                                                 IsEnabled="{Binding RamtestSizeIsAuto}"
+                                                 Text="{Binding RamtestSizePercent, Mode=TwoWay, StringFormat='{}{0:##0}',
+                                                           TargetNullValue='', UpdateSourceTrigger=PropertyChanged, Delay=800}">
+                                            <i:Interaction.Behaviors>
+                                                <behaviors:NumericTextBoxBehavior
+                                                    MaxValue="99"
+                                                    MinValue="1" />
+                                            </i:Interaction.Behaviors>
+                                        </TextBox>
+                                    </Grid>
+
+                                </StackPanel>
+
+                                <!-- * Stop on Test Scope * -->
+                                <Grid DockPanel.Dock="Top" Margin="0,0,0,0">
+                                    <CheckBox Content="Max Coverage:"
+                                        IsChecked="{Binding RamtestStopOnTaskScope, Mode=TwoWay}">
+                                        <FrameworkElement.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock>
+                                                    Limit test to a maximum memory coverage.<LineBreak />
+                                                    • Set above active test coverage before enabling.
+                                                </TextBlock>
+                                            </ToolTip>
+                                        </FrameworkElement.ToolTip>
+                                    </CheckBox>
+                                    <!-- Test Scope Duration -->
+                                    <TextBox Tag="%" Text="{Binding RamtestTaskScope, Mode=TwoWay, TargetNullValue=''}">
+                                        <FrameworkElement.Style>
+                                            <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
+                                                <Style.Triggers>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding RamtestStopOnTaskScope}" Value="True" />
+                                                            <Condition Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="0" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource ValueErrorBrush}" />
+                                                    </MultiDataTrigger>
+                                                    <DataTrigger Binding="{Binding RamtestStopOnTaskScope}" Value="False">
+                                                        <Setter Property="Foreground" Value="{DynamicResource GrayTextBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </FrameworkElement.Style>
+                                        <i:Interaction.Behaviors>
+                                            <behaviors:NumericTextBoxBehavior
+                                                MaxValue="1000000"
+                                                MinValue="0" />
+                                        </i:Interaction.Behaviors>
+                                    </TextBox>
+                                </Grid>
+
+                            </DockPanel>
+                        </GroupBox>
+
+                        <!-- ++++++++++ Status Group ++++++++++ -->
+                        <GroupBox DockPanel.Dock="Top">
+                            <FrameworkElement.Style>
+                                <Style TargetType="{x:Type GroupBox}" BasedOn="{StaticResource {x:Type GroupBox}}">
+                                    <Setter Property="Header" Value="Status"/>
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding RamtestCoverage, ConverterParameter=0,
+                                                                        Converter={StaticResource IsGreaterThanConverter}}" Value="False" />
+                                                <Condition Binding="{Binding RamtestIsRunning}" Value="False" />
+                                                <Condition Binding="{Binding RamtestSizeIsValid}" Value="True" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Header" Value="Status: Ready" />
+                                        </MultiDataTrigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding RamtestSizeIsValid}" Value="False" />
+                                                <Condition Binding="{Binding RamtestIsRunning}" Value="False" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Header" Value="Status: Not Ready" />
+                                        </MultiDataTrigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding RamtestCoverage, ConverterParameter=0,
+                                                                        Converter={StaticResource IsGreaterThanConverter}}" Value="True" />
+                                                <Condition Binding="{Binding RamtestIsRunning}" Value="False" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Header" Value="Results" />
+                                        </MultiDataTrigger>
+                                        <DataTrigger Binding="{Binding RamtestErrorCount, ConverterParameter=0,
+                                                                  Converter={StaticResource IsGreaterThanConverter}}" Value="True">
+                                            <Setter Property="Header" Value="Error Detected" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </FrameworkElement.Style>
+
+                            <DockPanel Margin="5,4,5,5">
+
+                                <!-- Test Duration -->
+                                <Grid DockPanel.Dock="Top" Margin="0,0,0,3">
+                                    <TextBlock Text="Duration:" VerticalAlignment="Bottom" FontSize="12" />
+                                    <TextBlock Style="{StaticResource TestStatusFontSyle}"
+                                        Text="{Binding RamtestDuration, StringFormat='d\\:hh\\:mm\\:ss',
+                                                   ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}" />
+                                </Grid>
+
+                                <!-- Test Coverage -->
+                                <Grid DockPanel.Dock="Top" Margin="0,0,0,3">
+                                    <TextBlock Text="Coverage:" VerticalAlignment="Bottom" FontSize="12" />
+                                    <TextBlock Style="{StaticResource TestStatusFontSyle}"
+                                        Text="{Binding RamtestCoverage, StringFormat={}{0:##0 %},
+                                                   ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}">
+                                        <FrameworkElement.ToolTip>
+                                            <ToolTip Placement="Right">
+                                                <ToolTip.Style>
+                                                    <Style TargetType="{x:Type ToolTip}" BasedOn="{StaticResource {x:Type ToolTip}}">
+                                                    <Setter Property="Visibility" Value="Hidden" />
+                                                    <Style.Triggers>
+                                                        <MultiDataTrigger>
+                                                            <MultiDataTrigger.Conditions>
+                                                                <Condition Binding="{Binding RamtestSpeed, ConverterParameter=0,
+                                                                                        Converter={StaticResource IsGreaterThanConverter}}" Value="True" />
+                                                                <Condition Binding="{Binding RamtestIsRunning}" Value="True" />
+                                                            </MultiDataTrigger.Conditions>
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </MultiDataTrigger>
+                                                    </Style.Triggers>
+                                                    </Style>
+                                                </ToolTip.Style>
+                                                <TextBlock Tag="coverageToolTip">
+                                                    <TextBlock.Text>
+                                                        <MultiBinding StringFormat="{}{0:N0}% in {1}"
+                                                                      ConverterCulture="{x:Static local:ViewModels.AppViewModel.CurrentCulture}">
+                                                            <Binding Path="RamtestNextFullCoveragePercent" />
+                                                            <Binding Path="RamtestNextFullCoverageIn" />
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                            </ToolTip>
+                                        </FrameworkElement.ToolTip>
+                                    </TextBlock>
+                                </Grid>
+
+                                <!-- Error Count -->
+                                <Grid DockPanel.Dock="Top" Margin="0,0,0,3">
+                                    <TextBlock Text="Error Count:" VerticalAlignment="Bottom" FontSize="12" />
+                                    <TextBlock Text="{Binding RamtestErrorCount, Mode=OneWay}">
+                                        <FrameworkElement.Style>
+                                            <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource TestStatusFontSyle}">
+                                                <Setter Property="Control.Foreground" Value="{DynamicResource SecondaryTextBrush}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding RamtestErrorCount, ConverterParameter=0,
+                                                                              Converter={StaticResource IsGreaterThanConverter}}" Value="True">
+                                                        <Setter Property="Control.Foreground" Value="{DynamicResource ValueErrorBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </FrameworkElement.Style>
+                                    </TextBlock>
+                                    <!-- Error Log Expander Button -->
+                                    <Expander x:Name="errorExpander" Margin="-10,0,-26,0"
+                                              Foreground="{DynamicResource ValueErrorBrush}"
+                                              Background="Transparent"
+                                              HorizontalAlignment="Right"
+                                              VerticalAlignment="Center"
+                                              ExpandDirection="Right"
+                                              IsExpanded="False"
+                                              ClipToBounds="False">
+                                        <FrameworkElement.Style>
+                                            <Style TargetType="{x:Type Expander}" BasedOn="{StaticResource ExpanderButtonStyle}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding RamtestErrorLog, Converter={StaticResource InverseBooleanConverter}}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </FrameworkElement.Style>
+                                        <Expander.Tag><sys:Double>0.0</sys:Double></Expander.Tag><!-- Direction: Right=0.0, Left=180.0, Up=-90.0, Down=90.0 -->
+                                        <!-- Error Log Popup -->
+                                        <Popup MaxHeight="250"
+                                               Placement="Right"
+                                               HorizontalOffset="2"
+                                               VerticalOffset="0"
+                                               PopupAnimation="Scroll"
+                                               AllowsTransparency="True">
+                                            <FrameworkElement.Style>
+                                                <Style TargetType="{x:Type Popup}">
+                                                    <Setter Property="IsOpen" Value="{Binding IsExpanded, ElementName=errorExpander}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding RamtestHasStopped}" Value="True">
+                                                            <Setter Property="IsOpen" Value="False" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </FrameworkElement.Style>
+                                            <Border BorderThickness="1"
+                                                    CornerRadius="3"
+                                                    Background="{DynamicResource PopupBackgroundBrush}"
+                                                    BorderBrush="{DynamicResource ControlBorderBrush}" >
+                                                <ScrollViewer Style="{StaticResource VerticalScrollStyle}">
+                                                    <TextBlock Padding="6" FontSize="11.2"
+                                                        Text="{Binding RamtestErrorLog, Mode=OneWay}"
+                                                        Foreground="{DynamicResource PopupTextBrush}">
+                                                    </TextBlock>
+                                                </ScrollViewer>
+                                            </Border>
+                                            <i:Interaction.Behaviors>
+                                                <behaviors:ChildPopupBehavior />
+                                            </i:Interaction.Behaviors>
+                                        </Popup>
+                                        <i:Interaction.Behaviors>
+                                            <behaviors:ExpanderPopupBehavior />
+                                        </i:Interaction.Behaviors>
+                                    </Expander>
+
+                                </Grid>
+
+                                <!-- Test Speed -->
+                                <Grid DockPanel.Dock="Top" Margin="0" >
+                                    <TextBlock Text="Test Speed:" VerticalAlignment="Bottom" FontStyle="Italic" FontSize="11.5" />
+                                    <TextBlock>
+                                        <FrameworkElement.Style>
+                                            <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource TestStatusFontSyle}">
+                                                <Setter Property="Control.Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+                                                <Setter Property="FontSize" Value="13" />
+                                                <Setter Property="Text" Value="{Binding RamtestSpeed, StringFormat='{}{0:0.##0; -0.###; 0} MB/s',
+                                                                                   ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}" />
+                                                <Style.Triggers>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding RamtestSpeed, ConverterParameter=0,
+                                                                                    Converter={StaticResource IsGreaterThanConverter}}" Value="True" />
+                                                            <Condition Binding="{Binding RamtestIsRunning}" Value="False" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter Property="Control.Foreground" Value="{DynamicResource GrayTextBrush}"/>
+                                                    </MultiDataTrigger>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding RamtestSpeed, ConverterParameter=0,
+                                                                                    Converter={StaticResource IsGreaterThanConverter}}" Value="False" />
+                                                            <Condition Binding="{Binding RamtestIsRunning}" Value="True" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter Property="FontStyle" Value="Italic" />
+                                                        <Setter Property="Text" Value="Calculating..." />
+                                                    </MultiDataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </FrameworkElement.Style>
+                                    </TextBlock>
+                                </Grid>
+
+                                <!-- Max Speed -->
+                                <Grid DockPanel.Dock="Top" Margin="0,3,0,0">
+                                    <Grid.Style>
+                                        <Style TargetType="Grid">
+                                            <Style.Triggers>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding RamtestMaxSpeed, ConverterParameter=0,
+                                                                                Converter={StaticResource IsGreaterThanConverter}}" Value="False" />
+                                                        <Condition Binding="{Binding RamtestIsRunning}" Value="False" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </MultiDataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Grid.Style>
+                                    <TextBlock Text="Max Speed:" FontStyle="Italic" FontSize="11.5" />
+                                    <TextBlock Foreground="{DynamicResource GrayTextBrush}" FontSize="11.5">
+                                        <FrameworkElement.Style>
+                                            <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource TestStatusFontSyle}">
+                                            <Setter Property="Text" Value="{Binding RamtestMaxSpeed, StringFormat='{}{0:N3} MB/s',
+                                                                               ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding RamtestMaxSpeed, ConverterParameter=0,
+                                                                              Converter={StaticResource IsGreaterThanConverter}}" Value="False">
+                                                        <Setter Property="Text" Value="Calculating..." />
+                                                        <Setter Property="FontStyle" Value="Italic" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </FrameworkElement.Style>
+                                    </TextBlock>
+                                </Grid>
+
+                                <!-- Advanced Options Status -->
+                                <Grid DockPanel.Dock="Top" HorizontalAlignment="Left" Margin="0,6,0,-1">
+                                    <TextBlock x:Name="fpuCheckBoxState" Visibility="Collapsed">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="Off" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding RamtestStressFpu}" Value="True">
+                                                        <Setter Property="Text" Value="On" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock FontSize="9" HorizontalAlignment="Left" Foreground="{DynamicResource GrayTextBrush}">
+                                        <Run Text="Cache:" />
+                                        <Run Text="{Binding RamtestCpuCacheMode}"  />
+                                        <Run Text=" RNG:" />
+                                        <Run Text="{Binding RamtestRngMode}" />
+                                        <Run Text=" FPU:" />
+                                        <Run Text="{Binding Text, ElementName=fpuCheckBoxState}" />
+                                    </TextBlock>
+                                </Grid>
+
+                            </DockPanel>
+                        </GroupBox>
+
+                        <!-- * Start/Stop Command * -->
+                        <Button x:Name="StartButton" DockPanel.Dock="Bottom" Margin="3,6,3,6" IsDefault="False" Focusable="True">
+                            <FrameworkElement.Style>
+                                <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MainButtonStyle}">
+                                    <Setter Property="Content" Value="Start" />
+                                    <Setter Property="Command" Value="{Binding RamtestStartCommand}" />
+                                    <Setter Property="Border.Background" Value="{DynamicResource StartButtonBrush}" />
+                                    <Setter Property="Border.BorderBrush" Value="{DynamicResource StartButtonBorderBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RamtestIsRunning}" Value="True">
+                                            <Setter Property="Content" Value="Stop" />
+                                            <Setter Property="Command" Value="{Binding RamtestStopCommand}" />
+                                            <Setter Property="Border.Background" Value="{DynamicResource SecondControlBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </FrameworkElement.Style>
+                        </Button>
+
+                    </DockPanel>
+                </TabItem>
+
+                <!-- +++++++++++++++ Advanced Tab +++++++++++++++ -->
+                <TabItem Header="Advanced">
+                    <Grid>
+                        <DockPanel Margin="2,0,2,12" LastChildFill="True">
+                            <!-- ++++++++++ Advanced Group ++++++++++ -->
+                            <GroupBox DockPanel.Dock="Top" Header="Advanced">
+
+                                <DockPanel Margin="5,4,5,5">
+
+                                    <!-- Cpu Cache Modes -->
+                                    <Grid DockPanel.Dock="Top" Margin="0,0,0,3">
+                                        <TextBlock Text="CPU Cache:" VerticalAlignment="Center">
+                                            <FrameworkElement.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock>
+                                                        The CPU cache mode used in the test.<LineBreak />
+                                                        <LineBreak />
+                                                        [Disabled] - Memory pages are marked non-cachable.<LineBreak />
+                                                        • Slowest but doesn't pick up cache instability errors.<LineBreak />
+                                                        <LineBreak />
+                                                        [Write-combine] - Cache used only for write buffering.<LineBreak />
+                                                        • Faster and could pick up cache related write errors.<LineBreak />
+                                                        <LineBreak />
+                                                        [Default] - Cache is used but flushed frequently.<LineBreak />
+                                                        • Fast and could pick up cache related read/write errors.<LineBreak />
+                                                        <LineBreak />
+                                                        [Enabled] - Cache used without restriction.<LineBreak />
+                                                        • Fastest and most likely to pick up cache related errors.
+                                                    </TextBlock>
+                                                </ToolTip>
+                                            </FrameworkElement.ToolTip>
+                                        </TextBlock>
+                                        <ComboBox Style="{StaticResource ComboBoxDropDown}"
+                                            ItemsSource="{Binding RamtestCpuCacheModes}"
+                                            SelectedItem="{Binding RamtestCpuCacheMode, Mode=TwoWay}"
+                                            IsEnabled="{Binding RamtestIsRunning, Converter={StaticResource InverseBooleanConverter}}" />
+                                    </Grid>
+
+                                    <!-- RNG Modes -->
+                                    <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                                        <TextBlock Text="RNG Mode:" VerticalAlignment="Center">
+                                            <FrameworkElement.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock>
+                                                        The random number generator function.<LineBreak />
+                                                        <LineBreak />
+                                                        [Default] - RtlGenRandom function.<LineBreak />
+                                                        [XORWOW] - Faster on some systems.
+                                                    </TextBlock>
+                                                </ToolTip>
+                                            </FrameworkElement.ToolTip>
+                                        </TextBlock>
+                                        <ComboBox Style="{StaticResource ComboBoxDropDown}"
+                                            ItemsSource="{Binding RamtestRngModes}"
+                                            SelectedItem="{Binding RamtestRngMode, Mode=TwoWay}"
+                                            IsEnabled="{Binding RamtestIsRunning, Converter={StaticResource InverseBooleanConverter}}" />
+                                    </Grid>
+
+                                    <!-- Stop on Error -->
+                                    <Grid DockPanel.Dock="Top" Margin="0">
+                                        <CheckBox Content="Stop on Error Limit:" 
+                                            IsEnabled="{Binding RamtestErrorLimit,
+                                                           Converter={StaticResource IsGreaterThanConverter}, ConverterParameter=0}"
+                                            IsChecked="{Binding RamtestStopOnError, Mode=TwoWay}">
+                                            <FrameworkElement.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock>
+                                                        Stops test when set error limit is reached.<LineBreak />
+                                                        • Up to 50 errors can be logged to history.
+                                                    </TextBlock>
+                                                </ToolTip>
+                                            </FrameworkElement.ToolTip>
+                                        </CheckBox>
+                                        <!-- Error Limit -->
+                                        <TextBox Width="40"
+                                                 Text="{Binding RamtestErrorLimit, Mode=TwoWay, TargetNullValue='',
+                                                           UpdateSourceTrigger=PropertyChanged, Delay=1000}">
+                                            <i:Interaction.Behaviors>
+                                                <behaviors:NumericTextBoxBehavior
+                                                    MaxValue="100"
+                                                    MinValue="0" />
+                                            </i:Interaction.Behaviors>
+                                        </TextBox>
+                                    </Grid>
+
+                                </DockPanel>
+                            </GroupBox>
+
+                            <Grid DockPanel.Dock="Top">
+
+                                <!-- ++++++++++ Experimental Group ++++++++++ -->
+                                <GroupBox Header="Experimental" HorizontalAlignment="Left" Margin="3,2,3,1">
+                                    <!-- Stress FPU -->
+                                    <CheckBox Content="Stress FPU" VerticalAlignment="Center" Margin="5,3,5,4"
+                                        IsChecked="{Binding RamtestStressFpu, Mode=TwoWay}"
+                                        IsEnabled="{Binding RamtestIsRunning, Converter={StaticResource InverseBooleanConverter}}">
+                                        <FrameworkElement.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock>
+                                                    Stresses floating point unit to increase thermals.<LineBreak />
+                                                    • May help expose memory controller instability.
+                                                </TextBlock>
+                                            </ToolTip>
+                                        </FrameworkElement.ToolTip>
+                                    </CheckBox>
+                                </GroupBox>
+
+                                <!-- ++++++++++ Sounds Group ++++++++++ -->
+                                <GroupBox Header="Sounds" HorizontalAlignment="Right" Margin="3,2,3,1">
+                                    <!-- Beep On Error -->
+                                    <CheckBox Content="Beep on Error" VerticalAlignment="Center" Margin="5,3,5,4"
+                                        IsChecked="{Binding RamtestBeepOnError, Mode=TwoWay}" />
+                                </GroupBox>
+
+                            </Grid>
+
+                            <!-- ++++++++++ Options Group ++++++++++ -->
+                            <GroupBox DockPanel.Dock="Top" Header="Options">
+
+                                <DockPanel Margin="5,4,5,5">
+
+                                    <!-- Max Speed Delay -->
+                                    <Grid DockPanel.Dock="Top" Margin="0,0,0,3">
+                                        <TextBlock Text="Max Speed Delay:" Padding="0,2,0,0">
+                                            <FrameworkElement.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock>
+                                                        Delays recording max speed until set coverage.<LineBreak />
+                                                        • Adjust to reduce spikes early in the test.<LineBreak />
+                                                        • Test history not saved until max speed is set.
+                                                    </TextBlock>
+                                                </ToolTip>
+                                            </FrameworkElement.ToolTip>
+                                        </TextBlock>
+                                        <TextBox Tag="%" Width="55"
+                                                 IsEnabled="{Binding RamtestIsRunning, Converter={StaticResource InverseBooleanConverter}}"
+                                                 Text="{Binding UiMaxSpeedDelay, Mode=TwoWay, TargetNullValue=''}">
+                                            <i:Interaction.Behaviors>
+                                                <behaviors:NumericTextBoxBehavior
+                                                    MaxValue="1000"
+                                                    MinValue="0" />
+                                            </i:Interaction.Behaviors>
+                                        </TextBox>
+                                    </Grid>
+
+                                    <!-- Polling Rate -->
+                                    <Grid DockPanel.Dock="Top" Margin="0,0,0,3.5">
+                                        <TextBlock Text="Refresh Interval:" Padding="0,2,0,0">
+                                            <FrameworkElement.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock>
+                                                        Sets the UI refresh interval in ms.<LineBreak />
+                                                        Range: 10-1000 ms (Default: 150 ms)
+                                                    </TextBlock>
+                                                </ToolTip>
+                                            </FrameworkElement.ToolTip>
+                                        </TextBlock>
+                                        <!-- * Set Polling Command * -->
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <Button Content="SET" Margin="0,0,-1,0"
+                                                    Padding="6,1,6,2"
+                                                    FontSize="10.3"
+                                                    Width="30"
+                                                    MaxHeight="{Binding ActualHeight, ElementName=pollingTextBox}"
+                                                    Command="{Binding SetPollingCommand}">
+                                                <Button.Style>
+                                                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MainButtonStyle}">
+                                                        <Setter Property="Border.CornerRadius" Value="2,0,0,2" />
+                                                        <Style.Triggers>
+                                                            <Trigger Property="IsEnabled" Value="True">
+                                                                <Setter Property="Tag" Value="highlight" />
+                                                                <Setter Property="Grid.ZIndex" Value="1" />
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                            <!-- Polling Interval -->
+                                            <TextBox x:Name="pollingTextBox" Tag="ms" Width="55"
+                                                     Text="{Binding UiPollingRate, Mode=TwoWay, TargetNullValue='', UpdateSourceTrigger=PropertyChanged, Delay=1200}">
+                                                <TextBox.Style>
+                                                    <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
+                                                        <Setter Property="Border.CornerRadius" Value="0,3,3,0" />
+                                                    </Style>
+                                                </TextBox.Style>
+                                                <TextBox.InputBindings>
+                                                    <KeyBinding Command="{Binding SetPollingCommand}" Key="Enter" />
+                                                </TextBox.InputBindings>
+                                                <i:Interaction.Behaviors>
+                                                    <behaviors:NumericTextBoxBehavior
+                                                        MaxValue="1000"
+                                                        MinValue="10" />
+                                                </i:Interaction.Behaviors>
+                                            </TextBox>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Priority Levels -->
+                                    <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+                                        <TextBlock Text="Priority Level:" VerticalAlignment="Center">
+                                            <FrameworkElement.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock>
+                                                        Sets scheduling priority for the test.<LineBreak />
+                                                        • Run as admin required for Realtime.
+                                                    </TextBlock>
+                                                </ToolTip>
+                                            </FrameworkElement.ToolTip>
+                                        </TextBlock>
+                                        <ComboBox Style="{StaticResource ComboBoxDropDown}"
+                                            MinWidth="84" 
+                                            VerticalAlignment="Center"
+                                            ItemsSource="{Binding SystemPriorityLevels}"
+                                            SelectedItem="{Binding UiPriorityLevel, Mode=TwoWay}" />
+                                    </Grid>
+
+                                    <StackPanel DockPanel.Dock="Top" Orientation="Vertical" Margin="0,0,0,5">
+                                        <!-- Enable History Log -->
+                                        <CheckBox Content="Log Test History" Margin="0,0,0,6"
+                                                  IsEnabled="{Binding RamtestIsRunning, Converter={StaticResource InverseBooleanConverter}}"
+                                                  IsChecked="{Binding UiHistoryEnabled, Mode=TwoWay}" >
+                                            <FrameworkElement.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock>
+                                                        Saves test results to history log.<LineBreak />
+                                                        • Does not affect existing history.
+                                                    </TextBlock>
+                                                </ToolTip>
+                                            </FrameworkElement.ToolTip>
+                                        </CheckBox>
+                                        <!-- Enable Topmost Window -->
+                                        <CheckBox Content="Keep Window on Top" Margin="0,0,0,6"
+                                                  IsChecked="{Binding UiTopmostEnabled, Mode=TwoWay}" />
+                                        <!-- Enable Save Window Position -->
+                                        <CheckBox Content="Save Window Position" Margin="0,0,0,6"
+                                                  IsChecked="{Binding UiSaveWindowPos, Mode=TwoWay}" />
+                                        <!-- Enable Tool Tips -->
+                                        <CheckBox Content="Show Tool Tips" Margin="0,0,0,0"
+                                                  IsChecked="{Binding UiToolTipEnabled, Mode=TwoWay}">
+                                            <FrameworkElement.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock>Disable to hide me.</TextBlock>
+                                                </ToolTip>
+                                            </FrameworkElement.ToolTip>
+                                        </CheckBox>
+                                    </StackPanel>
+
+                                    <!-- * Set Default Settings Command * -->
+                                    <Button Content="Set Defaults" DockPanel.Dock="Bottom" Margin="0"
+                                            HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                            MinHeight="19" MaxHeight="25"
+                                            FontSize="10.3"
+                                            IsDefault="False"
+                                            Style="{StaticResource MainButtonStyle}"
+                                            Command="{Binding ResetSettingsCommand}"
+                                            IsEnabled="{Binding RamtestIsRunning, Converter={StaticResource InverseBooleanConverter}}">
+                                            <FrameworkElement.ToolTip>
+                                                <ToolTip Placement="Right">
+                                                    <TextBlock>
+                                                        Reset to default settings.<LineBreak />
+                                                        • History is not cleared.
+                                                    </TextBlock>
+                                                </ToolTip>
+                                            </FrameworkElement.ToolTip>
+                                    </Button>
+
+                                </DockPanel>
+                            </GroupBox>
+                        </DockPanel>
+
+                        <!-- App Info -->
+                        <Label Content="{Binding AppVersion}"
+                               HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                               Foreground="{DynamicResource GrayTextBrush}"
+                               Background="Transparent"
+                               FontFamily="Consolas"
+                               FontSize="9.4"
+                               Padding="1" />
+                    </Grid>
+                </TabItem>
+
+                <!-- History Log -->
+                <TabItem Header="History">
+                    <TabItem.Style>
+                        <Style TargetType="{x:Type TabItem}" BasedOn="{StaticResource {x:Type TabItem}}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding UiHistoryEnabled}" Value="False">
+                                    <Setter Property="Foreground" Value="{DynamicResource GrayTextBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TabItem.Style>
+
+                    <DockPanel Margin="5">
+
+                        <Grid DockPanel.Dock="Top">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- History Log - Virtualizing ScrollViewer -->
+                            <ItemsControl Tag="HistoryViewer" Grid.Row="0" IsTabStop="False"
+                                FocusManager.IsFocusScope="True"
+                                ItemsSource="{Binding HistoryLogLines}"
+                                VirtualizingPanel.IsVirtualizing="True"
+                                VirtualizingStackPanel.VirtualizationMode="Recycling">
+                                <ItemsControl.Template>
+                                    <ControlTemplate TargetType="ItemsControl">
+                                        <Grid>
+                                            <Border Margin="0,0,0,5"
+                                                    Background="{DynamicResource WindowBackground}"
+                                                    BorderBrush="{DynamicResource ControlBorderBrush}"
+                                                    Opacity="0.8"
+                                                    CornerRadius="4"
+                                                    BorderThickness="1">
+                                                <ScrollViewer Style="{StaticResource VerticalScrollStyle}">
+                                                    <ScrollViewer.InputBindings>
+                                                        <KeyBinding Command="ScrollBar.ScrollToHomeCommand" Key="Home" />
+                                                        <KeyBinding Command="ScrollBar.ScrollToEndCommand" Key="End" />
+                                                        <KeyBinding Command="ScrollBar.ScrollToHomeCommand" Gesture="CTRL+UP" />
+                                                        <KeyBinding Command="ScrollBar.ScrollToEndCommand" Gesture="CTRL+DOWN" />
+                                                        <KeyBinding Command="ScrollBar.PageUpCommand" Gesture="SHIFT+UP" />
+                                                        <KeyBinding Command="ScrollBar.PageDownCommand" Gesture="SHIFT+DOWN" />
+                                                    </ScrollViewer.InputBindings>
+                                                    <ItemsPresenter />
+                                                </ScrollViewer>
+                                            </Border>
+                                            <!-- * Open Log File Command * -->
+                                            <Button Content="&#xE89E;" Margin="0,0,15,10" IsDefault="False"
+                                                    HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                                    MinHeight="19" MaxHeight="25"
+                                                    FontSize="15"
+                                                    Style="{StaticResource IconButtonStyle}"
+                                                    Command="{Binding OpenLogCommand}">
+                                                <FrameworkElement.ToolTip>
+                                                    <ToolTip Placement="Right">
+                                                        <TextBlock>Open Log File</TextBlock>
+                                                    </ToolTip>
+                                                </FrameworkElement.ToolTip>
+                                            </Button>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </ItemsControl.Template>
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" Foreground="{DynamicResource ControlTextBrush}" Margin="5" FontSize="12" FontFamily="Consolas">
+                                            <FrameworkElement.Style>
+                                                <Style TargetType="{x:Type TextBlock}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="No History">
+                                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </FrameworkElement.Style>
+                                            <i:Interaction.Behaviors>
+                                                <behaviors:ScrollToBottomBehavior />
+                                            </i:Interaction.Behaviors>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <Grid Grid.Row="1" IsEnabled="{Binding RamtestIsRunning, Converter={StaticResource InverseBooleanConverter}}" Grid.ZIndex="100">
+                                <!-- * Remove Last Entry Command * -->
+                                <Button Content="Remove Last Entry" IsDefault="False"
+                                        HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                        MinHeight="19" MaxHeight="25"
+                                        FontSize="10.3"
+                                        Style="{StaticResource MainButtonStyle}"
+                                        Command="{Binding ClearLogEntryCommand}" />
+                                <!-- * Clear History Log Command * -->
+                                <Button Content="Clear All" IsDefault="False" Margin="5,0,0,0"
+                                        HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                        MinHeight="19" MaxHeight="25"
+                                        FontSize="10.3"
+                                        Style="{StaticResource MainButtonStyle}"
+                                        Command="{Binding ClearLogCommand}" />
+                            </Grid>
+
+                        </Grid>
+                    </DockPanel>
+                </TabItem>
+
+            </TabControl>
+        </Grid>
+    </Grid>
+</Window>

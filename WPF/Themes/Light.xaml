@@ -1,0 +1,39 @@
+﻿<ResourceDictionary
+     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+     xmlns:local="clr-namespace:KGuiX.Themes">
+
+    <SolidColorBrush x:Key="WindowBackground" Color="#E6E6E6" />
+    <SolidColorBrush x:Key="WindowBorder" Color="#ADADAD" />
+    <SolidColorBrush x:Key="TitleBarBackground" Color="#E6E6E6" />
+
+    <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#F0F0F0" />
+
+    <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#F5F5F5" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveBorderBrushKey}" Color="#A9A9A9" />
+
+    <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="#1A1A1A" />
+    <SolidColorBrush x:Key="ControlTextBrush" Color="#1A1A1A" />
+    <SolidColorBrush x:Key="SecondaryTextBrush" Color="#378062" />
+    <SolidColorBrush x:Key="GrayTextBrush" Color="#737373" />
+
+    <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SecondControlBrush" Color="#D2D5D6" />
+    <SolidColorBrush x:Key="ControlBorderBrush" Color="#A8A8A8" />
+
+    <SolidColorBrush x:Key="ValueErrorBrush" Color="#FF310D" />
+
+    <SolidColorBrush x:Key="PopupTextBrush" Color="#333333" />
+    <SolidColorBrush x:Key="PopupBackgroundBrush" Color="#DEE2E3" />
+
+    <SolidColorBrush x:Key="HighlightItemBrush" Color="#A4DBC4" Opacity="1" />
+    <SolidColorBrush x:Key="HighlightBorderBrush" Color="#117A4F" />
+
+    <SolidColorBrush x:Key="ScrollBarTrackBrush" Color="#A9A9A9" Opacity="0.5" />
+
+    <SolidColorBrush x:Key="StartButtonBrush" Color="#AFCCC0" />
+    <SolidColorBrush x:Key="StartButtonBorderBrush" Color="#799489" Opacity="1" />
+    <SolidColorBrush x:Key="ButtonOverlayBrush" Color="#8FC9B1" Opacity="1" />
+
+</ResourceDictionary>
