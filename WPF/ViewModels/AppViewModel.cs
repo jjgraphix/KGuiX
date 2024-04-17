@@ -217,7 +217,8 @@ namespace KGuiX.ViewModels
             Support priority classes
             Update log restore
             ? Support for alternate single letter parameters
-            ? Do not make startup values persistent and support "--save" switch 
+            ? Do not make startup values persistent and support "--save" switch
+            ? User presets?
         */
         void SetStartupArguments(string[] startArgs)
         {
@@ -245,7 +246,7 @@ namespace KGuiX.ViewModels
                 if (argsDict.Remove("DEFAULT"))         // Checks for default parameter before setting test arguments
                     ResetSettingsCommand.Execute(null);
 
-                if (argsDict.Remove("LOG-RESTORE"))     // TODO: Undocumented
+                if (argsDict.Remove("LOG-RESTORE"))     // TODO
                 {
                     ReadLogFile();
                     return;
@@ -373,9 +374,9 @@ namespace KGuiX.ViewModels
 
             if (!string.IsNullOrEmpty(logText))
             {
-                File.AppendAllText(_logFilePath, (newEntry && logExists) ? $" \n\n{logText}" : logText);    // Updates log file
+                File.AppendAllText(_logFilePath, (newEntry && logExists) ? $" \n\n{logText}" : logText);    // Updates log file
 
-                HistoryLog += (newEntry && !string.IsNullOrWhiteSpace(HistoryLog)) ? $" \n\n{logText}" : logText;                       // Updates history tab
+                HistoryLog += (newEntry && !string.IsNullOrWhiteSpace(HistoryLog)) ? $" \n\n{logText}" : logText;                       // Updates history tab
             }
 
             if (testCancel)
@@ -416,7 +417,7 @@ namespace KGuiX.ViewModels
         /// <param name="param"></param>
         void ClearLastLogEntry(object? param)
         {
-            int lastIndex = HistoryLog.LastIndexOf(" \n\n");
+            int lastIndex = HistoryLog.LastIndexOf(" \n\n");
 
             // Removes lines following line break of last test entry
             HistoryLog = HistoryLog.Substring(0, ((lastIndex >= 0) ? lastIndex : 0));
@@ -525,7 +526,6 @@ namespace KGuiX.ViewModels
             {
                 _ramtestStartTick = Stopwatch.GetTimestamp();
                 RamtestErrorLog = "";
-                // RamtestErrorCount = 0;      // Debug
 
                 if (UiHistoryEnabled)
                 {

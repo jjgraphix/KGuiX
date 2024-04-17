@@ -238,7 +238,7 @@ namespace KGuiX.ViewModels
         /// The ramtest history log lines for virtualizing scroll viewer.
         /// </summary>
         public IEnumerable<string> HistoryLogLines
-            => (string.IsNullOrWhiteSpace(HistoryLog)) ? new[] {"No History"} : HistoryLog?.Split(" \n\n");
+            => (string.IsNullOrWhiteSpace(HistoryLog)) ? new[] {"No History"} : HistoryLog?.Split(" \n\n");
 
 
         /// <summary>

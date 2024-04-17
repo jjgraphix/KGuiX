@@ -477,7 +477,7 @@
                         <Trigger.EnterActions>
                             <BeginStoryboard>
                                 <Storyboard TargetName="overlay" TargetProperty="Opacity">
-                                    <DoubleAnimation To="1" Duration="0:0:0.08"  AccelerationRatio="1" />
+                                    <DoubleAnimation To="0.5" Duration="0:0:0.08"  AccelerationRatio="1" />
                                 </Storyboard>
                             </BeginStoryboard>
                         </Trigger.EnterActions>
@@ -491,6 +491,7 @@
                     </Trigger>
                     <Trigger Property="IsKeyboardFocused" Value="True">
                         <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource HighlightBorderBrush}" />
+                        <Setter TargetName="overlay" Property="Opacity" Value="1" />
                     </Trigger>
                     <Trigger Property="IsEnabled" Value="False">
                         <Setter Property="Foreground" Value="{DynamicResource GrayTextBrush}" />
@@ -582,6 +583,7 @@
             </Style>
 
             <!-- ComboBox: ComboBoxItem -->
+            <!-- TODO: erratic behavior holding mousedown with cursor outside popup window -->
             <ControlTemplate x:Key="ComboBoxItemTemplate" TargetType="{x:Type ComboBoxItem}">
                 <Grid>
                     <Border x:Name="overlay" Opacity="0.7"
@@ -710,7 +712,7 @@
                                 Width="9" Height="9"
                                 Visibility="Collapsed"
                                 SnapsToDevicePixels="True"
-                                CornerRadius="2"
+                                CornerRadius="5"
                                 Background="{DynamicResource SecondaryTextBrush}" />
                     </Border>
                     <Border x:Name="overlay" Grid.Column="0"
@@ -774,7 +776,7 @@
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="HorizontalAlignment" Value="Left" />
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="Border.CornerRadius" Value="3" />
+                <Setter Property="Border.CornerRadius" Value="6" />
             </Style>
 
 

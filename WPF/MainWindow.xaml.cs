@@ -51,7 +51,7 @@ namespace KGuiX
             Close();
         }
         /// <summary>
-        /// Application theme toggle routed click event.
+        /// UI theme toggle routed click event.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>

@@ -61,7 +61,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="28" /> <!--  0:TitleBar  -->
-            <RowDefinition Height="*" />    <!--  1:Window  -->
+            <RowDefinition Height="*" />  <!--  1:Window  -->
         </Grid.RowDefinitions>
         <!-- Title bar background -->
         <Border Grid.Row="0">
@@ -415,14 +415,14 @@
                                                 <Condition Binding="{Binding RamtestIsRunning}" Value="False" />
                                                 <Condition Binding="{Binding RamtestSizeIsValid}" Value="True" />
                                             </MultiDataTrigger.Conditions>
-                                            <Setter Property="Header" Value="Status: Ready" />
+                                            <Setter Property="Header" Value="Ready" />
                                         </MultiDataTrigger>
                                         <MultiDataTrigger>
                                             <MultiDataTrigger.Conditions>
                                                 <Condition Binding="{Binding RamtestSizeIsValid}" Value="False" />
                                                 <Condition Binding="{Binding RamtestIsRunning}" Value="False" />
                                             </MultiDataTrigger.Conditions>
-                                            <Setter Property="Header" Value="Status: Not Ready" />
+                                            <Setter Property="Header" Value="Not Ready" />
                                         </MultiDataTrigger>
                                         <MultiDataTrigger>
                                             <MultiDataTrigger.Conditions>
@@ -1008,7 +1008,7 @@
                                                 </ScrollViewer>
                                             </Border>
                                             <!-- * Open Log File Command * -->
-                                            <Button Content="&#xE89E;" Margin="0,0,15,10" IsDefault="False"
+                                            <Button Content="&#xE89E;" Margin="0,0,15,13" IsDefault="False"
                                                     HorizontalAlignment="Right" VerticalAlignment="Bottom"
                                                     MinHeight="19" MaxHeight="25"
                                                     FontSize="15"
