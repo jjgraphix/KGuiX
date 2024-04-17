@@ -41,7 +41,7 @@ Examples:
     KGuiX -size 27500M -threads 16 -coverage 0 -errors 1 --fpu
     KGuiX -size 27G -threads auto -cache 3 -errors 1 --default
 
-Test `-size` value indicates a percentage by default unless unit `M` or `G` is specified, or value is greater than 99.
+Test `-size` indicates a percentage by default unless unit `M` or `G` is specified, or value is greater than 99.
 
 Switches are controlled using `:ON` or `:OFF`, with on as the default state. For example, `--fpu:off` would disable the feature if previously enabled.
 
