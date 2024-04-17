@@ -41,13 +41,13 @@ Examples:
     KGuiX -size 27500M -threads 16 -coverage 0 -errors 1 --fpu
     KGuiX -size 27G -threads auto -cache 3 -errors 1 --default
 
-Test `-size` indicates a percentage by default unless unit `M` or `G` is specified, or value is greater than 99.
+The value of `-size` indicates a percentage by default unless unit `M` or `G` is specified, or value is greater than 99.
 
-Switches are controlled using `:ON` or `:OFF`, with on as the default state. For example, `--fpu:off` would disable the feature if previously enabled.
+Switches are controlled using `:ON` or `:OFF`, with on as the default state. For example, `--fpu:off` would ensure the feature is disabled.
 
-The `--default` switch applies default test values for all undefined settings. Added features such as maximum test coverage are disabled by default.
+The `--default` switch ensures default values for all undefined settings. Features such as maximum test coverage are disabled by default.
 
-For example, the following would ensure only a test size of 90% will be applied:
+For example, the following would indicate only a test size of 90% is applied to the default test:
 
     KGuiX -size 90 --default
 
