@@ -349,7 +349,7 @@ namespace KGuiX.ViewModels
             }
 
             RamtestStopOnTaskScope = (RamtestStopOnTaskScope) ? (RamtestTaskScope != 0) :
-                                    (Convert.ToUInt32(before) == 0 && RamtestTaskScope > 0);
+                                        (Convert.ToUInt32(before) == 0 && RamtestTaskScope > 0);
         }
 
         /// <summary>OnPropertyChanged: Validate <see cref="RamtestSizePercent"></summary>

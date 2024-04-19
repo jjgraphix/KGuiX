@@ -128,7 +128,7 @@ namespace KGuiX
         void RequiredFileDialog(string filePath, string fileInfo)
         {
             string filename = Path.GetFileName(filePath);
-            bool overwriteFile = false;
+            bool overwriteFile = false;     // Indicates if file with same name already exists
 
             if (File.Exists(filePath))
             {

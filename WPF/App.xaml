@@ -17,6 +17,7 @@
 
             <converters:IsGreaterThanConverter x:Key="IsGreaterThanConverter"/>
             <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+            <converters:TimeSpanConverter x:Key="TimeSpanConverter"/>
 
             <!-- Fonts -->
             <FontFamily x:Key="MaterialIcons">/Fonts/#Material Icons</FontFamily>

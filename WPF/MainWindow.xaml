@@ -45,11 +45,18 @@
                     <MultiDataTrigger.Conditions>
                         <Condition Binding="{Binding RamtestIsRunning}" Value="True" />
                         <Condition Binding="{Binding RamtestStopOnTaskScope}" Value="True" />
-                        <Condition Binding="{Binding RamtestSpeed, Converter={StaticResource IsGreaterThanConverter}, ConverterParameter=0}" Value="True" />
+                        <Condition Binding="{Binding RamtestSpeed, ConverterParameter=0,
+                                                ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture},
+                                                Converter={StaticResource IsGreaterThanConverter}}" Value="True" />
                     </MultiDataTrigger.Conditions>
-                    <Setter Property="Window.Title"
-                            Value="{Binding RamtestFinishedIn, StringFormat='Finished in {0:hh\\:mm\\:ss}',
-                                       ConverterCulture={x:Static local:ViewModels.BindableBase.CurrentCulture}}" />
+                    <Setter Property="Window.Title">
+                        <!-- Value="{Binding TestFinishedIn, StringFormat='Finished in {0:d\\:hh\\:mm\\:ss}'}" -->
+                        <Setter.Value>
+                            <MultiBinding StringFormat="Finished in {0}">
+                                <Binding Path="RamtestFinishedIn" Converter="{StaticResource TimeSpanConverter}" ConverterParameter="ShortDay" />
+                            </MultiBinding>
+                        </Setter.Value>
+                    </Setter>
                 </MultiDataTrigger>
                 <DataTrigger Binding="{Binding IsActive, RelativeSource={RelativeSource Self}}" Value="False">
                     <Setter Property="Foreground" Value="{DynamicResource GrayTextBrush}" />
@@ -70,6 +77,7 @@
                 <Setter Property="Background" Value="{DynamicResource TitleBarBackground}"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding RamtestErrorCount, ConverterParameter=0,
+                                                  ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture},
                                                   Converter={StaticResource IsGreaterThanConverter}}" Value="True">
                             <Setter Property="Margin" Value="-1" />
                             <Setter Property="Background" Value="{DynamicResource ValueErrorBrush}" />
@@ -411,6 +419,7 @@
                                         <MultiDataTrigger>
                                             <MultiDataTrigger.Conditions>
                                                 <Condition Binding="{Binding RamtestCoverage, ConverterParameter=0,
+                                                                        ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture},
                                                                         Converter={StaticResource IsGreaterThanConverter}}" Value="False" />
                                                 <Condition Binding="{Binding RamtestIsRunning}" Value="False" />
                                                 <Condition Binding="{Binding RamtestSizeIsValid}" Value="True" />
@@ -427,12 +436,14 @@
                                         <MultiDataTrigger>
                                             <MultiDataTrigger.Conditions>
                                                 <Condition Binding="{Binding RamtestCoverage, ConverterParameter=0,
+                                                                        ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture},
                                                                         Converter={StaticResource IsGreaterThanConverter}}" Value="True" />
                                                 <Condition Binding="{Binding RamtestIsRunning}" Value="False" />
                                             </MultiDataTrigger.Conditions>
                                             <Setter Property="Header" Value="Results" />
                                         </MultiDataTrigger>
                                         <DataTrigger Binding="{Binding RamtestErrorCount, ConverterParameter=0,
+                                                                  ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture},
                                                                   Converter={StaticResource IsGreaterThanConverter}}" Value="True">
                                             <Setter Property="Header" Value="Error Detected" />
                                         </DataTrigger>
@@ -446,8 +457,10 @@
                                 <Grid DockPanel.Dock="Top" Margin="0,0,0,3">
                                     <TextBlock Text="Duration:" VerticalAlignment="Bottom" FontSize="12" />
                                     <TextBlock Style="{StaticResource TestStatusFontSyle}"
-                                        Text="{Binding RamtestDuration, StringFormat='d\\:hh\\:mm\\:ss',
-                                                   ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}" />
+                                        Text="{Binding RamtestDuration, Converter={StaticResource TimeSpanConverter},
+                                                  ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}" />
+                                        <!-- Text="{Binding RamtestDuration, StringFormat='d\\:hh\\:mm\\:ss', -->
+                                                   <!-- ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}" /> -->
                                 </Grid>
 
                                 <!-- Test Coverage -->
@@ -465,6 +478,7 @@
                                                         <MultiDataTrigger>
                                                             <MultiDataTrigger.Conditions>
                                                                 <Condition Binding="{Binding RamtestSpeed, ConverterParameter=0,
+                                                                                        ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture},
                                                                                         Converter={StaticResource IsGreaterThanConverter}}" Value="True" />
                                                                 <Condition Binding="{Binding RamtestIsRunning}" Value="True" />
                                                             </MultiDataTrigger.Conditions>
@@ -496,6 +510,7 @@
                                                 <Setter Property="Control.Foreground" Value="{DynamicResource SecondaryTextBrush}" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding RamtestErrorCount, ConverterParameter=0,
+                                                                              ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture},
                                                                               Converter={StaticResource IsGreaterThanConverter}}" Value="True">
                                                         <Setter Property="Control.Foreground" Value="{DynamicResource ValueErrorBrush}" />
                                                     </DataTrigger>
@@ -576,6 +591,7 @@
                                                     <MultiDataTrigger>
                                                         <MultiDataTrigger.Conditions>
                                                             <Condition Binding="{Binding RamtestSpeed, ConverterParameter=0,
+                                                                                    ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture},
                                                                                     Converter={StaticResource IsGreaterThanConverter}}" Value="True" />
                                                             <Condition Binding="{Binding RamtestIsRunning}" Value="False" />
                                                         </MultiDataTrigger.Conditions>
@@ -584,6 +600,7 @@
                                                     <MultiDataTrigger>
                                                         <MultiDataTrigger.Conditions>
                                                             <Condition Binding="{Binding RamtestSpeed, ConverterParameter=0,
+                                                                                    ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture},
                                                                                     Converter={StaticResource IsGreaterThanConverter}}" Value="False" />
                                                             <Condition Binding="{Binding RamtestIsRunning}" Value="True" />
                                                         </MultiDataTrigger.Conditions>
@@ -604,6 +621,7 @@
                                                 <MultiDataTrigger>
                                                     <MultiDataTrigger.Conditions>
                                                         <Condition Binding="{Binding RamtestMaxSpeed, ConverterParameter=0,
+                                                                                ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture},
                                                                                 Converter={StaticResource IsGreaterThanConverter}}" Value="False" />
                                                         <Condition Binding="{Binding RamtestIsRunning}" Value="False" />
                                                     </MultiDataTrigger.Conditions>
@@ -620,6 +638,7 @@
                                                                                ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture}}" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding RamtestMaxSpeed, ConverterParameter=0,
+                                                                              ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture},
                                                                               Converter={StaticResource IsGreaterThanConverter}}" Value="False">
                                                         <Setter Property="Text" Value="Calculating..." />
                                                         <Setter Property="FontStyle" Value="Italic" />
@@ -741,6 +760,7 @@
                                     <Grid DockPanel.Dock="Top" Margin="0">
                                         <CheckBox Content="Stop on Error Limit:" 
                                             IsEnabled="{Binding RamtestErrorLimit,
+                                                           ConverterCulture={x:Static local:ViewModels.AppViewModel.CurrentCulture},
                                                            Converter={StaticResource IsGreaterThanConverter}, ConverterParameter=0}"
                                             IsChecked="{Binding RamtestStopOnError, Mode=TwoWay}">
                                             <FrameworkElement.ToolTip>

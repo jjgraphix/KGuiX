@@ -13,14 +13,17 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 
+using System.Reflection;
+
 #nullable disable warnings
 namespace KGuiX.ViewModels
 {
     internal class AppViewModel : BindableBase
     {
         Window _mainWindow = Application.Current.MainWindow;
-        string _rootDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        string _logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "history.log");
+
+        static string _rootDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        static string _logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "history.log");
 
         long _ramtestStartTick;
         bool _startOnLaunch = false;
@@ -72,8 +75,11 @@ namespace KGuiX.ViewModels
         /// Create new instance of <see cref="AppViewModel"/>.
         /// </summary>
         /// <param name="eArgs"></param>
-        public AppViewModel(string[]? eArgs)
+        public AppViewModel(string[]? eArgs, bool initialize = true)
         {
+            if (!initialize)    // Allows new instances
+                return;
+
             LoadUserSettings();
 
             BackgroundUpdater(null, EventArgs.Empty);   // Initializes updater
@@ -88,17 +94,18 @@ namespace KGuiX.ViewModels
             RamtestStartCommand = new RelayCommand(StartRamtest, CanStartRamtest);
             RamtestStopCommand = new RelayCommand(StopRamtest, CanStopRamtest);
 
-            SetPollingCommand = new RelayCommand(SetPollingRate, CanSetPolling);
-            ClearLogCommand = new RelayCommand(ClearLog, CanClearLog);
             ClearLogEntryCommand = new RelayCommand(ClearLastLogEntry, CanClearLog);
-            OpenLogCommand = new RelayCommand(OpenLogFile, CanOpenLog);
+            ClearLogCommand = new RelayCommand(ClearLog, CanClearLog);
+            OpenLogCommand = new RelayCommand(OpenLog, CanOpenLog);
+
+            SetPollingCommand = new RelayCommand(SetPollingRate, CanSetPolling);
             ResetSettingsCommand = new RelayCommand(ResetDefaultSettings);
             FreeSystemMemoryCommand = new RelayCommand(EmptyAllProcesses);
 
             if (eArgs.Count() > 0)                      // Checks for provided startup arguments
                 SetStartupArguments(eArgs);
 
-            RamtestHasStopped = true;
+            RamtestHasStopped = true;                   // Executes loop actions on startup
         }
 
         /// <summary>
@@ -153,27 +160,32 @@ namespace KGuiX.ViewModels
 
         }
 
-        // TODO
         /// <summary>
-        /// Get the default value of an individual settings property.
+        /// Get the default value of an application properties setting.
         /// </summary>
         /// <param name="propertyName"></param>
+        /// <returns>Default properties setting value of any type or current value if undefined.</returns>
         static dynamic GetDefault(string propertyName)
         {
-            var settingsProperty = Properties.Settings.Default.Properties[propertyName];
+            var setting = Properties.Settings.Default.Properties[propertyName];
 
-            if (settingsProperty != null)
+            if (setting != null)
             {
-                if (settingsProperty.DefaultValue != null)
+                if (setting.DefaultValue != null)   // Gets default value of settings property
                 {
-                    var defaultValue = TypeDescriptor.GetConverter(settingsProperty.PropertyType).ConvertFromString(settingsProperty.DefaultValue as string);
-                    Console.WriteLine($"{propertyName} Default: {defaultValue.GetType()}");    // DEBUG
+                    var defaultValue = TypeDescriptor.GetConverter(setting.PropertyType).ConvertFromString(setting.DefaultValue as string);
 
                     return defaultValue;
                 }
             }
 
-            return null;    // Property not found or does not have a default value
+            // Return current value of the property if failed to retrieve settings property
+            var propertyInfo = typeof(AppViewModel).GetProperty(propertyName);
+
+            if (propertyInfo != null && propertyInfo.CanRead)
+                return propertyInfo.GetValue(new AppViewModel(new string[] {}, false));
+
+            return null;    // Error: property not found
         }
 
         /// <summary>
@@ -226,6 +238,9 @@ namespace KGuiX.ViewModels
 
             for (int index = 0; index < startArgs.Length; index += 2)
             {
+                if (string.IsNullOrEmpty(startArgs[index]))
+                    break;
+
                 string argIndex = startArgs[index].ToUpper();
 
                 if (startArgs.Length == (index + 1) || startArgs[index + 1].StartsWith("-"))        // Handles switch with no parameters
@@ -235,6 +250,7 @@ namespace KGuiX.ViewModels
 
                     argsDict.Add(argIndex, argSwitch.ToString());
                     index--;
+                    break;
                 }
 
                 if (startArgs.Length >= (index + 1) && !startArgs[index + 1].StartsWith("-"))       // Handles argument with parameter
@@ -317,7 +333,6 @@ namespace KGuiX.ViewModels
                                      "See 'KGuiX -help' for command line usage.",
                                     "KGuiX Startup Arguments", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-
             }
         }
 
@@ -331,12 +346,12 @@ namespace KGuiX.ViewModels
             {
                 try
                 {
-                    if (!EmptyWorkingSet(p))    // Empty working set of all processes
+                    if (!EmptyWorkingSet(p))    // Empties working set of each process
                         Console.WriteLine($"Failed to Empty Working Set: {p.ProcessName}");    // DEBUG
                 }
                 catch (Win32Exception ex)
                 {
-                    Console.WriteLine($"[Exception] EmptyAllProcesses: {ex.Message}");    // DEBUG
+                    Console.WriteLine($"[Exception] EmptyAllProcesses: {ex.Message}");
                 }
             });
         }
@@ -345,10 +360,8 @@ namespace KGuiX.ViewModels
         /// Remove as many pages as possible from working set of a process.
         /// </summary>
         /// <param name="process">A handle to the process.</param>
-        /// <returns>
-        /// Returns true if working set successfully cleared for the given process.
-        /// </returns>
-        public bool EmptyWorkingSet(Process process)
+        /// <returns>True if working set successfully cleared for the given process.</returns>
+        bool EmptyWorkingSet(Process process)
             => Interops.SetWorkingSetSize(process, -1, -1);
 
 
@@ -368,7 +381,7 @@ namespace KGuiX.ViewModels
         /// <param name="logText"></param>
         /// <param name="newEntry">True indicates start of a new test.</param>
         /// <param name="testCancel">True removes test info from UI and updates log file.</param>
-        public void UpdateLog(string logText = "", bool newEntry = false, bool testCancel = false)
+        void UpdateLog(string logText = "", bool newEntry = false, bool testCancel = false)
         {
             bool logExists = File.Exists(_logFilePath) && new FileInfo(_logFilePath).Length > 6;
 
@@ -392,6 +405,7 @@ namespace KGuiX.ViewModels
         /// Check if <see cref="HistoryLog"/> has data to be cleared.
         /// </summary>
         /// <param name="param"></param>
+        /// <returns></returns>
         bool CanClearLog(object? param)
             => !string.IsNullOrEmpty(HistoryLog);
 
@@ -427,26 +441,40 @@ namespace KGuiX.ViewModels
         }
 
         /// <summary>
-        /// Check if <see cref="HistoryLog"/> has data to be cleared.
+        /// Check if history.log file exists and contains data.
         /// </summary>
         /// <param name="param"></param>
+        /// <returns></returns>
         bool CanOpenLog(object? param)
             => File.Exists(_logFilePath)
             && new FileInfo(_logFilePath).Length > 6;
 
         /// <summary>
-        /// Open history log with notepad.
+        /// Open history log with default text editor.
         /// </summary>
         /// <param name="param"></param>
-        void OpenLogFile(object? param)
+        void OpenLog(object? param)
         {
-            Process.Start(@"notepad.exe", _logFilePath);
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = _logFilePath,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Exception] OpenLog: {ex.Message}");    // DEBUG
+                MessageBox.Show($"{ex.Message}", "KGuiX Error", MessageBoxButton.OK);
+            }
         }
 
         /// <summary>
         /// Check if dispatcher timer interval can be set.
         /// </summary>
         /// <param name="param"></param>
+        /// <returns>True if new value is within the specified range.</returns>
         bool CanSetPolling(object? param)
             => UiPollingRate is >= 10 and <= 1000
             && UiPollingRate != _updateTimer.Interval.TotalMilliseconds;
@@ -466,6 +494,7 @@ namespace KGuiX.ViewModels
         /// Check if ramtest can be stopped.
         /// </summary>
         /// <param name="param"></param>
+        /// <returns>True if ramtest is running.</returns>
         bool CanStopRamtest(object? param)
             => RamtestIsRunning;
 
@@ -473,6 +502,7 @@ namespace KGuiX.ViewModels
         /// Check if ramtest can be started.
         /// </summary>
         /// <param name="param"></param>
+        /// <returns>True if ramtest is not running and test values are valid.</returns>
         bool CanStartRamtest(object? param)
             => !RamtestIsRunning
             && RamtestSizeIsValid
@@ -559,13 +589,19 @@ namespace KGuiX.ViewModels
             }
 
             if (RamtestBeepOnError)
-                System.Threading.Tasks.Task.Run(() =>   // Executes on new thread to preserve timer interval
+            {
+                /* Execute on new thread to preserve timer interval.
+                   Repeated errors in quick succession could lose audio sync but
+                   the testing loop will not need to wait for the beep duration.
+                */ 
+                System.Threading.Tasks.Task.Run(() =>
                 {
                     if (!isErrorLimit)
-                        Console.Beep(1550, 150);        // Higher frequency 150ms beep
+                        Console.Beep(1550, 140);        // Higher frequency 140ms beep
                     else
                         Console.Beep(1000, 450);        // Final longer beep
                 });
+            }
 
             if (RamtestStopOnError && isErrorLimit)
             {
